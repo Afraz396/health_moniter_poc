@@ -419,52 +419,73 @@ def check_smtp_relay() -> Dict[str, Any]:
 @app.get("/health")
 def health_check(response: Response):
 
+    # services = {
+
+    #     # Systemd
+    #     "backend_service":
+    #         check_systemd_service(
+    #             BACKEND_SERVICE
+    #         ),
+
+    #     "local_mail_daemon":
+    #         check_systemd_service(
+    #             MAIL_DAEMON_SERVICE
+    #         ),
+
+    #     # Docker
+    #     "proxy":
+    #         check_docker_container(
+    #             PROXY_CONTAINER
+    #         ),
+
+    #     "coolify":
+    #         check_docker_container(
+    #             COOLIFY_CONTAINER
+    #         ),
+
+    #     "postgresql":
+    #         check_docker_container(
+    #             POSTGRES_CONTAINER
+    #         ),
+
+    #     "redis":
+    #         check_docker_container(
+    #             REDIS_CONTAINER
+    #         ),
+
+    #     "realtime":
+    #         check_docker_container(
+    #             REALTIME_CONTAINER
+    #         ),
+
+    #     # Network
+    #     "proxy_http":
+    #         check_proxy_http(),
+
+    #     "smtp_relay":
+    #         check_smtp_relay(),
+    # }
+
     services = {
 
-        # Systemd
-        "backend_service":
-            check_systemd_service(
-                BACKEND_SERVICE
-            ),
+    "backend_service":
+        check_systemd_service(
+            BACKEND_SERVICE
+        ),
 
-        "local_mail_daemon":
-            check_systemd_service(
-                MAIL_DAEMON_SERVICE
-            ),
+    "proxy":
+        check_docker_container(
+            PROXY_CONTAINER
+        ),
 
-        # Docker
-        "proxy":
-            check_docker_container(
-                PROXY_CONTAINER
-            ),
+    "postgresql":
+        check_docker_container(
+            POSTGRES_CONTAINER
+        ),
 
-        "coolify":
-            check_docker_container(
-                COOLIFY_CONTAINER
-            ),
-
-        "postgresql":
-            check_docker_container(
-                POSTGRES_CONTAINER
-            ),
-
-        "redis":
-            check_docker_container(
-                REDIS_CONTAINER
-            ),
-
-        "realtime":
-            check_docker_container(
-                REALTIME_CONTAINER
-            ),
-
-        # Network
-        "proxy_http":
-            check_proxy_http(),
-
-        "smtp_relay":
-            check_smtp_relay(),
-    }
+    "proxy_http":
+        check_proxy_http(),
+}
 
 
     # --------------------------------------------------------
