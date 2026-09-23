@@ -355,7 +355,7 @@ def check_proxy_http() -> Dict[str, Any]:
         return {
             "status": "down",
             "http_status": response.status_code,
-            "latency_ms": latency,
+            # "latency_ms": latency,
             "url": PROXY_HEALTH_URL,
             "error": "Proxy returned server error"
         }
