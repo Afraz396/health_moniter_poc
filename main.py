@@ -208,13 +208,13 @@ def check_systemd_service(
 
             return {
                 "status": "up",
-                "latency_ms": latency,
+                # "latency_ms": latency,
                 "service": service_name
             }
 
         return {
             "status": "down",
-            "latency_ms": latency,
+            # "latency_ms": latency,
             "service": service_name,
             "error": (
                 f"{service_name} is "
@@ -273,7 +273,7 @@ def check_docker_container(
 
             return {
                 "status": "down",
-                "latency_ms": latency,
+                # "latency_ms": latency,
                 "container": container_name,
                 "error": (
                     result.stderr.strip()
@@ -292,13 +292,13 @@ def check_docker_container(
 
             return {
                 "status": "up",
-                "latency_ms": latency,
+                # "latency_ms": latency,
                 "container": container_name
             }
 
         return {
             "status": "down",
-            "latency_ms": latency,
+            # "latency_ms": latency,
             "container": container_name,
             "error": (
                 f"Container {container_name} "
@@ -397,7 +397,7 @@ def check_smtp_relay() -> Dict[str, Any]:
 
         return {
             "status": "up",
-            "latency_ms": latency,
+            # "latency_ms": latency,
             "host": SMTP_HOST,
             "port": SMTP_PORT
         }
