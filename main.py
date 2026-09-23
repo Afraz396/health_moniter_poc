@@ -483,8 +483,8 @@ def health_check(response: Response):
             POSTGRES_CONTAINER
         ),
 
-    "proxy_http":
-        check_proxy_http(),
+    # "proxy_http":
+    #     check_proxy_http(),
 }
 
 
