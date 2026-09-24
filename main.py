@@ -56,42 +56,22 @@ BACKEND_SERVICE = os.getenv(
 
 
 # ------------------------------------------------------------
-# Coolify / Docker containers
+# Nginx systemd service
 # ------------------------------------------------------------
 
-PROXY_CONTAINER = os.getenv(
-    "PROXY_CONTAINER",
-    "coolify-proxy"
-)
-
-COOLIFY_CONTAINER = os.getenv(
-    "COOLIFY_CONTAINER",
-    "coolify"
-)
-
-POSTGRES_CONTAINER = os.getenv(
-    "POSTGRES_CONTAINER",
-    "coolify-db"
-)
-
-REDIS_CONTAINER = os.getenv(
-    "REDIS_CONTAINER",
-    "coolify-redis"
-)
-
-REALTIME_CONTAINER = os.getenv(
-    "REALTIME_CONTAINER",
-    "coolify-realtime"
+NGINX_SERVICE = os.getenv(
+    "NGINX_SERVICE",
+    "nginx.service"
 )
 
 
 # ------------------------------------------------------------
-# Mail daemon
+# PostgreSQL systemd service
 # ------------------------------------------------------------
 
-MAIL_DAEMON_SERVICE = os.getenv(
-    "MAIL_DAEMON_SERVICE",
-    "postfix.service"
+POSTGRESQL_SERVICE = os.getenv(
+    "POSTGRESQL_SERVICE",
+    "postgresql.service"
 )
 
 
@@ -128,41 +108,21 @@ SMTP_PORT = int(
 
 ALLOWED_SERVICES = {
 
-    # Systemd
+    # Systemd services
+
     "backend": {
         "type": "systemd",
         "name": BACKEND_SERVICE
     },
 
-    "mail": {
+    "nginx": {
         "type": "systemd",
-        "name": MAIL_DAEMON_SERVICE
-    },
-
-    # Docker
-    "proxy": {
-        "type": "docker",
-        "name": PROXY_CONTAINER
-    },
-
-    "coolify": {
-        "type": "docker",
-        "name": COOLIFY_CONTAINER
+        "name": NGINX_SERVICE
     },
 
     "postgresql": {
-        "type": "docker",
-        "name": POSTGRES_CONTAINER
-    },
-
-    "redis": {
-        "type": "docker",
-        "name": REDIS_CONTAINER
-    },
-
-    "realtime": {
-        "type": "docker",
-        "name": REALTIME_CONTAINER
+        "type": "systemd",
+        "name": POSTGRESQL_SERVICE
     },
 }
 
@@ -202,24 +162,26 @@ def check_systemd_service(
 
         status = result.stdout.strip()
 
-        latency = calculate_latency(start_time)
+        latency = calculate_latency(
+            start_time
+        )
 
         if status == "active":
 
             return {
                 "status": "up",
-                # "latency_ms": latency,
                 "service": service_name
+                # "latency_ms": latency,
             }
 
         return {
             "status": "down",
-            # "latency_ms": latency,
             "service": service_name,
             "error": (
                 f"{service_name} is "
                 f"{status or 'inactive'}"
             )
+            # "latency_ms": latency,
         }
 
     except subprocess.TimeoutExpired:
@@ -243,90 +205,6 @@ def check_systemd_service(
 
 
 # ============================================================
-# DOCKER CONTAINER CHECK
-# ============================================================
-
-def check_docker_container(
-    container_name: str
-) -> Dict[str, Any]:
-
-    start_time = time.time()
-
-    try:
-
-        result = subprocess.run(
-            [
-                "docker",
-                "inspect",
-                "-f",
-                "{{.State.Running}}",
-                container_name
-            ],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-
-        latency = calculate_latency(start_time)
-
-        if result.returncode != 0:
-
-            return {
-                "status": "down",
-                # "latency_ms": latency,
-                "container": container_name,
-                "error": (
-                    result.stderr.strip()
-                    or
-                    f"Container {container_name} "
-                    f"not found"
-                )
-            }
-
-        running = (
-            result.stdout.strip().lower()
-            == "true"
-        )
-
-        if running:
-
-            return {
-                "status": "up",
-                # "latency_ms": latency,
-                "container": container_name
-            }
-
-        return {
-            "status": "down",
-            # "latency_ms": latency,
-            "container": container_name,
-            "error": (
-                f"Container {container_name} "
-                f"is not running"
-            )
-        }
-
-    except subprocess.TimeoutExpired:
-
-        return {
-            "status": "down",
-            "container": container_name,
-            "error": (
-                f"Timeout checking Docker "
-                f"container {container_name}"
-            )
-        }
-
-    except Exception as exc:
-
-        return {
-            "status": "down",
-            "container": container_name,
-            "error": str(exc)
-        }
-
-
-# ============================================================
 # PROXY HTTP CHECK
 # ============================================================
 
@@ -341,23 +219,25 @@ def check_proxy_http() -> Dict[str, Any]:
             timeout=5
         )
 
-        latency = calculate_latency(start_time)
+        latency = calculate_latency(
+            start_time
+        )
 
         if response.status_code < 500:
 
             return {
                 "status": "up",
                 "http_status": response.status_code,
-                # "latency_ms": latency,
                 "url": PROXY_HEALTH_URL
+                # "latency_ms": latency,
             }
 
         return {
             "status": "down",
             "http_status": response.status_code,
-            # "latency_ms": latency,
             "url": PROXY_HEALTH_URL,
             "error": "Proxy returned server error"
+            # "latency_ms": latency,
         }
 
     except requests.RequestException as exc:
@@ -393,13 +273,15 @@ def check_smtp_relay() -> Dict[str, Any]:
                 )
             )
 
-        latency = calculate_latency(start_time)
+        latency = calculate_latency(
+            start_time
+        )
 
         return {
             "status": "up",
-            # "latency_ms": latency,
             "host": SMTP_HOST,
             "port": SMTP_PORT
+            # "latency_ms": latency,
         }
 
     except Exception as exc:
@@ -419,73 +301,30 @@ def check_smtp_relay() -> Dict[str, Any]:
 @app.get("/health")
 def health_check(response: Response):
 
-    # services = {
-
-    #     # Systemd
-    #     "backend_service":
-    #         check_systemd_service(
-    #             BACKEND_SERVICE
-    #         ),
-
-    #     "local_mail_daemon":
-    #         check_systemd_service(
-    #             MAIL_DAEMON_SERVICE
-    #         ),
-
-    #     # Docker
-    #     "proxy":
-    #         check_docker_container(
-    #             PROXY_CONTAINER
-    #         ),
-
-    #     "coolify":
-    #         check_docker_container(
-    #             COOLIFY_CONTAINER
-    #         ),
-
-    #     "postgresql":
-    #         check_docker_container(
-    #             POSTGRES_CONTAINER
-    #         ),
-
-    #     "redis":
-    #         check_docker_container(
-    #             REDIS_CONTAINER
-    #         ),
-
-    #     "realtime":
-    #         check_docker_container(
-    #             REALTIME_CONTAINER
-    #         ),
-
-    #     # Network
-    #     "proxy_http":
-    #         check_proxy_http(),
-
-    #     "smtp_relay":
-    #         check_smtp_relay(),
-    # }
-
     services = {
 
-    "backend_service":
-        check_systemd_service(
-            BACKEND_SERVICE
-        ),
+        # Backend
+        "backend_service":
+            check_systemd_service(
+                BACKEND_SERVICE
+            ),
 
-    "proxy":
-        check_docker_container(
-            PROXY_CONTAINER
-        ),
+        # Nginx
+        "nginx":
+            check_systemd_service(
+                NGINX_SERVICE
+            ),
 
-    "postgresql":
-        check_docker_container(
-            POSTGRES_CONTAINER
-        ),
+        # PostgreSQL
+        "postgresql":
+            check_systemd_service(
+                POSTGRESQL_SERVICE
+            ),
 
-    # "proxy_http":
-    #     check_proxy_http(),
-}
+        # Proxy HTTP
+        "proxy_http":
+            check_proxy_http(),
+    }
 
 
     # --------------------------------------------------------
@@ -503,7 +342,10 @@ def health_check(response: Response):
             break
 
 
+    # --------------------------------------------------------
     # Return HTTP 503 when any service is unhealthy
+    # --------------------------------------------------------
+
     if overall_status == "unhealthy":
 
         response.status_code = 503
@@ -514,12 +356,18 @@ def health_check(response: Response):
         "status": overall_status,
 
         "server": {
-            "hostname": socket.gethostname(),
-            "os": platform.platform(),
-            "timestamp_utc": time.strftime(
-                "%Y-%m-%d %H:%M:%S UTC",
-                time.gmtime()
-            )
+
+            "hostname":
+                socket.gethostname(),
+
+            "os":
+                platform.platform(),
+
+            "timestamp_utc":
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S UTC",
+                    time.gmtime()
+                )
         },
 
         "services": services
@@ -585,70 +433,17 @@ def execute_systemctl(
 
 
     return {
+
         "success": True,
+
         "action": action,
+
         "service": service_name,
+
         "type": "systemd",
+
         "message": (
             f"{service_name} "
-            f"{action} command executed successfully"
-        )
-    }
-
-
-# ============================================================
-# DOCKER ACTION
-# ============================================================
-
-def execute_docker(
-    action: str,
-    container_name: str
-) -> Dict[str, Any]:
-
-    if action not in {
-        "start",
-        "restart"
-    }:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Docker action"
-        )
-
-
-    result = subprocess.run(
-        [
-            "sudo",
-            "docker",
-            action,
-            container_name
-        ],
-        capture_output=True,
-        text=True,
-        timeout=30
-    )
-
-
-    if result.returncode != 0:
-
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                result.stderr.strip()
-                or
-                f"Failed to {action} "
-                f"{container_name}"
-            )
-        )
-
-
-    return {
-        "success": True,
-        "action": action,
-        "container": container_name,
-        "type": "docker",
-        "message": (
-            f"{container_name} "
             f"{action} command executed successfully"
         )
     }
@@ -674,14 +469,6 @@ def start_service(
     service = ALLOWED_SERVICES[
         service_key
     ]
-
-
-    if service["type"] == "docker":
-
-        return execute_docker(
-            "start",
-            service["name"]
-        )
 
 
     return execute_systemctl(
@@ -712,14 +499,6 @@ def restart_service(
     ]
 
 
-    if service["type"] == "docker":
-
-        return execute_docker(
-            "restart",
-            service["name"]
-        )
-
-
     return execute_systemctl(
         "restart",
         service["name"]
@@ -734,6 +513,7 @@ def restart_service(
 def root():
 
     return {
+
         "application":
             "Production Health Monitoring API",
 
