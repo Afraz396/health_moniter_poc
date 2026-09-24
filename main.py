@@ -208,45 +208,45 @@ def check_systemd_service(
 # PROXY HTTP CHECK
 # ============================================================
 
-def check_proxy_http() -> Dict[str, Any]:
+# def check_proxy_http() -> Dict[str, Any]:
 
-    start_time = time.time()
+#     start_time = time.time()
 
-    try:
+#     try:
 
-        response = requests.get(
-            PROXY_HEALTH_URL,
-            timeout=5
-        )
+#         response = requests.get(
+#             PROXY_HEALTH_URL,
+#             timeout=5
+#         )
 
-        latency = calculate_latency(
-            start_time
-        )
+#         latency = calculate_latency(
+#             start_time
+#         )
 
-        if response.status_code < 500:
+#         if response.status_code < 500:
 
-            return {
-                "status": "up",
-                "http_status": response.status_code,
-                # "url": PROXY_HEALTH_URL
-                # "latency_ms": latency,
-            }
+#             return {
+#                 "status": "up",
+#                 "http_status": response.status_code,
+#                 # "url": PROXY_HEALTH_URL
+#                 # "latency_ms": latency,
+#             }
 
-        return {
-            "status": "down",
-            "http_status": response.status_code,
-            # "url": PROXY_HEALTH_URL,
-            "error": "Proxy returned server error"
-            # "latency_ms": latency,
-        }
+#         return {
+#             "status": "down",
+#             "http_status": response.status_code,
+#             # "url": PROXY_HEALTH_URL,
+#             "error": "Proxy returned server error"
+#             # "latency_ms": latency,
+#         }
 
-    except requests.RequestException as exc:
+#     except requests.RequestException as exc:
 
-        return {
-            "status": "down",
-            # "url": PROXY_HEALTH_URL,
-            "error": str(exc)
-        }
+#         return {
+#             "status": "down",
+#             # "url": PROXY_HEALTH_URL,
+#             "error": str(exc)
+#         }
 
 
 # ============================================================
@@ -322,8 +322,8 @@ def health_check(response: Response):
             ),
 
         # Proxy HTTP
-        "proxy_http":
-            check_proxy_http(),
+        # "proxy_http":
+        #     check_proxy_http(),
     }
 
 
