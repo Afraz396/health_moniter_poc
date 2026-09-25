@@ -151,10 +151,10 @@ def check_systemd_service(
 
         result = subprocess.run(
             [
-                "systemctl",
-                "is-active",
-                service_name
-            ],
+        "/usr/bin/systemctl",
+        "is-active",
+        service_name
+    ],
             capture_output=True,
             text=True,
             timeout=5
@@ -408,11 +408,11 @@ def execute_systemctl(
 
     result = subprocess.run(
         [
-            "sudo",
-            "systemctl",
-            action,
-            service_name
-        ],
+        "/usr/bin/sudo",
+        "/usr/bin/systemctl",
+        action,
+        service_name
+    ],
         capture_output=True,
         text=True,
         timeout=30
