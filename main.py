@@ -407,16 +407,15 @@ def execute_systemctl(
 
 
     result = subprocess.run(
-        [
-        "/usr/bin/sudo",
+    [
         "/usr/bin/systemctl",
         action,
         service_name
     ],
-        capture_output=True,
-        text=True,
-        timeout=30
-    )
+    capture_output=True,
+    text=True,
+    timeout=30
+)
     
     print("RETURN CODE:", result.returncode)
     print("STDOUT:", result.stdout)
