@@ -417,6 +417,11 @@ def execute_systemctl(
         text=True,
         timeout=30
     )
+    
+    print("RETURN CODE:", result.returncode)
+    print("STDOUT:", result.stdout)
+    print("STDERR:", result.stderr)
+
 
 
     if result.returncode != 0:
