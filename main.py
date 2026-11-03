@@ -286,19 +286,19 @@ def health_check(response: Response):
 
     services = {
 
-    "Backend Service": check_systemd_service(
+    "API": check_systemd_service(
         BACKEND_SERVICE,
         "API"
     ),
 
-    "PostgreSQL": check_systemd_service(
+    "Database": check_systemd_service(
         POSTGRESQL_SERVICE,
         "Database"
     ),
 
-    "Nginx": check_systemd_service(
+    "Gateway": check_systemd_service(
         NGINX_SERVICE,
-        "Nginx"
+        "Gateway"
     ),
 }
 
