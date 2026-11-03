@@ -142,19 +142,17 @@ def calculate_latency(start_time: float) -> int:
 # ============================================================
 
 def check_systemd_service(
-    service_name: str
+    service_name: str,
+    display_name: str
 ) -> Dict[str, Any]:
 
-    start_time = time.time()
-
     try:
-
         result = subprocess.run(
             [
-        "/usr/bin/systemctl",
-        "is-active",
-        service_name
-    ],
+                "/usr/bin/systemctl",
+                "is-active",
+                service_name
+            ],
             capture_output=True,
             text=True,
             timeout=5
@@ -162,44 +160,29 @@ def check_systemd_service(
 
         status = result.stdout.strip()
 
-        latency = calculate_latency(
-            start_time
-        )
-
         if status == "active":
-
             return {
                 "status": "up",
-                "service": service_name
-                # "latency_ms": latency,
+                "service": display_name
             }
 
         return {
             "status": "down",
-            "service": service_name,
-            "error": (
-                f"{service_name} is "
-                f"{status or 'inactive'}"
-            )
-            # "latency_ms": latency,
+            "service": display_name,
+            "error": f"{display_name} is {status or 'inactive'}"
         }
 
     except subprocess.TimeoutExpired:
-
         return {
             "status": "down",
-            "service": service_name,
-            "error": (
-                f"Timeout checking "
-                f"{service_name}"
-            )
+            "service": display_name,
+            "error": f"Timeout checking {display_name}"
         }
 
     except Exception as exc:
-
         return {
             "status": "down",
-            "service": service_name,
+            "service": display_name,
             "error": str(exc)
         }
 
@@ -303,28 +286,21 @@ def health_check(response: Response):
 
     services = {
 
-        # Backend
-        "backend_service":
-            check_systemd_service(
-                BACKEND_SERVICE
-            ),
+    "API": check_systemd_service(
+        BACKEND_SERVICE,
+        "API"
+    ),
 
-        # Nginx
-        "nginx":
-            check_systemd_service(
-                NGINX_SERVICE
-            ),
+    "Database Backend Service": check_systemd_service(
+        POSTGRESQL_SERVICE,
+        "Database Backend Service"
+    ),
 
-        # PostgreSQL
-        "postgresql":
-            check_systemd_service(
-                POSTGRESQL_SERVICE
-            ),
-
-        # Proxy HTTP
-        # "proxy_http":
-        #     check_proxy_http(),
-    }
+    "Nginx": check_systemd_service(
+        NGINX_SERVICE,
+        "Nginx"
+    ),
+}
 
 
     # --------------------------------------------------------

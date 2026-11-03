@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .env
 copy_main.txt
+main_bc_20261103.py
